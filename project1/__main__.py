@@ -9,12 +9,12 @@ from dataset_preparation import *
 from test_case import run_test_case
 
 
-layers = [1, 3, 5]
+layers = [3, 5]
 kernel_sizes = [3, 5]
 padding = [0, 1, 2]
 stride = [1, 2, 3, 5]  # TODO
 pooling = [None, 'max_pooling', 'average_pooling']
-normalization = [None, 'batch', 'layer']  # TODO
+normalization = [None, 'batch', 'layer']
 optimizers = [None, 'adam', 'SGD', 'rmsprop', 'adagrad']
 seeds = [1, 4, 89, 901, 2137]
 
@@ -25,6 +25,8 @@ test_ds = get_test_data()
                   
 for layer in layers:
     for kernel in kernel_sizes:
+        if layer == 1 and kernel == 3:
+            continue
         for seed in seeds:
             print("Testing for: \nlayers: " + str(layer) +
                   '\nkernel: ' + str(kernel) + '\nseed: ' + str(seed))
