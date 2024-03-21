@@ -8,8 +8,7 @@ def get_train_data(batch_size):
     train_ds = utils.image_dataset_from_directory(
         DATA_DIR + '/train',
         image_size=(32, 32),
-        label_mode='categorical',
-        batch_size=batch_size)
+        label_mode='categorical')
 
     return train_ds
 
