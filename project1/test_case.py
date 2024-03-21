@@ -57,7 +57,7 @@ def get_1_layer_model(kernel_size, padding, stride, pooling, normalization, opti
     if padding > 0:
         model.add(layers.ZeroPadding2D(
             padding=(padding, padding), input_shape=(32, 32, 3)))
-    model.add(layers.Conv2D(8, (kernel_size, kernel_size),
+    model.add(layers.Conv2D(16, (kernel_size, kernel_size), strides=(stride, stride),
                             activation='relu', input_shape=(32 + padding, 32 + padding, 3)))
     model = add_pooling_layer(model, pooling)
     model = add_normalization_layer(model, normalization)
@@ -77,7 +77,7 @@ def get_3_layer_model(kernel_size, padding, stride, pooling, normalization, opti
     if padding > 0:
         model.add(layers.ZeroPadding2D(
             padding=(padding, padding), input_shape=(32, 32, 3)))
-    model.add(layers.Conv2D(8, (kernel_size, kernel_size),
+    model.add(layers.Conv2D(16, (kernel_size, kernel_size), strides=(stride, stride),
                             activation='relu', input_shape=(32 + padding, 32 + padding, 3)))
     model = add_pooling_layer(model, pooling)
     model = add_normalization_layer(model, normalization)
@@ -85,14 +85,14 @@ def get_3_layer_model(kernel_size, padding, stride, pooling, normalization, opti
     # CONVOLUTION LAYER 2
     if padding > 0:
         model.add(layers.ZeroPadding2D(padding=(padding, padding)))
-    model.add(layers.Conv2D(16, (kernel_size, kernel_size),
+    model.add(layers.Conv2D(16, (kernel_size, kernel_size), strides=(stride, stride),
               activation='relu'))
     model = add_normalization_layer(model, normalization)
 
     # CONVOLUTION LAYER 3
     if padding > 0:
         model.add(layers.ZeroPadding2D(padding=(padding, padding)))
-    model.add(layers.Conv2D(16, (kernel_size, kernel_size),
+    model.add(layers.Conv2D(16, (kernel_size, kernel_size), strides=(stride, stride),
               activation='relu'))
     model = add_pooling_layer(model, pooling)
     model = add_normalization_layer(model, normalization)
@@ -111,7 +111,7 @@ def get_5_layer_model(kernel_size, padding, stride, pooling, normalization, opti
     if padding > 0:
         model.add(layers.ZeroPadding2D(
             padding=(padding, padding), input_shape=(32, 32, 3)))
-    model.add(layers.Conv2D(8, (kernel_size, kernel_size),
+    model.add(layers.Conv2D(32, (kernel_size, kernel_size), strides=(stride, stride),
                             activation='relu', input_shape=(32 + padding, 32 + padding, 3)))
     model = add_model = add_pooling_layer(model, pooling)
     model = add_normalization_layer(model, normalization)
@@ -119,27 +119,31 @@ def get_5_layer_model(kernel_size, padding, stride, pooling, normalization, opti
     # CONVOLUTION LAYER 2
     if padding > 0:
         model.add(layers.ZeroPadding2D(padding=(padding, padding)))
-    model.add(layers.Conv2D(16, (kernel_size, kernel_size), activation='relu'))
-    model = add_pooling_layer(model, pooling)
+    model.add(layers.Conv2D(16, (kernel_size, kernel_size),
+              activation='relu'))
+    # model = add_pooling_layer(model, pooling)
     model = add_normalization_layer(model, normalization)
 
     # CONVOLUTION LAYER 3
     if padding > 0:
         model.add(layers.ZeroPadding2D(padding=(padding, padding)))
-    model.add(layers.Conv2D(16, (kernel_size, kernel_size), activation='relu'))
+    model.add(layers.Conv2D(32, (kernel_size, kernel_size),
+               activation='relu'))
     model = add_normalization_layer(model, normalization)
 
     # CONVOLUTION LAYER 4
     if padding > 0:
         model.add(layers.ZeroPadding2D(padding=(padding, padding)))
-    model.add(layers.Conv2D(32, (kernel_size, kernel_size), activation='relu'))
-    model = add_pooling_layer(model, pooling)
+    model.add(layers.Conv2D(32, (kernel_size, kernel_size),
+               activation='relu'))
     model = add_normalization_layer(model, normalization)
 
     # CONVOLUTION LAYER 5
     if padding > 0:
         model.add(layers.ZeroPadding2D(padding=(padding, padding)))
-    model.add(layers.Conv2D(32, (kernel_size, kernel_size), activation='relu'))
+    model.add(layers.Conv2D(32, (kernel_size, kernel_size),
+              strides=(stride, stride), activation='relu'))
+    model = add_pooling_layer(model, pooling)
     model = add_normalization_layer(model, normalization)
 
     # DENSE LAYERS
