@@ -27,5 +27,6 @@ def get_test_data():
     val_ds = utils.image_dataset_from_directory(
         DATA_DIR + '/test',
         label_mode='categorical',
+        shuffle=False,
         image_size=(32, 32))
     return val_ds

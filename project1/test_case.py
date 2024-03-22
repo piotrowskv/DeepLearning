@@ -1,12 +1,12 @@
 
 import tensorflow as tf
-from tensorflow.keras import datasets, layers, models
+from tensorflow.keras import datasets, layers, models, callbacks
 import warnings
 from results_utils import *
 from keras.utils import to_categorical
 import numpy as np
 
-N_EPOCHS = 1
+N_EPOCHS = 20
 
 
 def run_test_case(layers, kernel_size, padding, stride, pooling, normalization, optimizer, train_ds, val_ds, test_ds, path, seed):
@@ -22,29 +22,25 @@ def run_test_case(layers, kernel_size, padding, stride, pooling, normalization, 
         case 5:
             model = get_5_layer_model(
                 kernel_size, padding, stride, pooling, normalization, optimizer)
-
+    np.savetxt('test.txt', [9, 0])
     model.build()
     print(model.summary())
+    callback = callbacks.EarlyStopping(monitor='val_accuracy', patience=3)
     model.compile(optimizer=optimizer,
                   loss='categorical_crossentropy', metrics=["accuracy"])
     history = model.fit(train_ds, epochs=N_EPOCHS,
-                        validation_data=val_ds)
-    # predictions = model.predict(test_ds)
-    # predictions = np.argmax(predictions, axis=1)
-    # print(predictions)
-    # predictions = to_categorical(predictions, num_classes=10)
-   # labels = train_ds.class_names
-   # print(predictions)
-    # y = np.concatenate([y for x, y in test_ds], axis=0)
-    # y = np.argmax(y, axis=1)
-  #  print(y)
-   # predictions = np.argmax(predictions, axis=1)
-    result = model.evaluate(test_ds)
+                        validation_data=val_ds, callbacks=[callback])
+    
+    predictions = model.predict(test_ds)
+    predictions = np.argmax(predictions, axis=1)
+    y = np.concatenate([y for x, y in test_ds], axis=0)
+    y = np.argmax(y, axis=1)
+    labels = train_ds.class_names
+
+    result = model.evaluate(test_ds)        
     result_dict = (dict(zip(model.metrics_names, result)))
 
-    # correct_predictions = np.sum(np.where(y==predictions, 1, 0))
-    # accuracy_test = correct_predictions / len(predictions)
-   # plot_confusion_matrix(predictions, y, labels, path + '/seed-' + str(seed))
+    plot_confusion_matrix(predictions, y, labels, path + '/seed-' + str(seed))
     plot_accuracy(history, path + '/seed-' + str(seed))
     plot_loss(history, path + '/seed-' + str(seed))
     append_accuracy_score(result_dict['accuracy'], path)
