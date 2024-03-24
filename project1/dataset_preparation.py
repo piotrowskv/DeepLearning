@@ -13,6 +13,16 @@ def get_train_data(batch_size):
     return train_ds
 
 
+def get_augmented_train_data(batch_size):
+    print("Getting train data...")
+    train_ds = utils.image_dataset_from_directory(
+        DATA_DIR + '/train-augmented',
+        image_size=(32, 32),
+        label_mode='categorical')
+
+    return train_ds
+
+
 def get_validation_data():
     print("Getting validation data...")
     val_ds = utils.image_dataset_from_directory(
