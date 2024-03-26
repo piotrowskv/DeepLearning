@@ -9,13 +9,13 @@ from dataset_preparation import *
 from test_case import run_test_case
 
 
-layers = [5]
-kernel_sizes = [5]
+layers = [1, 3, 5]
+kernel_sizes = [3, 5]
 padding = [0, 1, 2]
 stride = [1, 2, 3, 5]
 pooling = [None, 'max_pooling', 'average_pooling']
 normalization = [None, 'batch', 'layer']
-optimizers = [None, 'adam', 'SGD', 'rmsprop', 'adagrad']
+optimizers = ['adam', 'SGD', 'rmsprop', 'adagrad']
 seeds = [1, 4, 89, 901, 2137]
 
 
