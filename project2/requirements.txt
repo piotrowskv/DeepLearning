@@ -1,0 +1,12 @@
+malaya-speech
+scipy
+librosa
+noisereduce
+python-speech-features
+seaborn
+scikit-learn
+pandas
+numpy
+tensorflow==2.15
+torch
+webrtcvad
