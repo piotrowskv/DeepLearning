@@ -1,13 +1,8 @@
-import tensorflow
+import tensorflow as tf
 import seaborn as sn
 from sklearn.preprocessing import LabelEncoder
-from python_speech_features import mfcc
 import os
-import malaya_speech
-from malaya_speech import Pipeline
-import noisereduce as nr
 from scipy.io import wavfile
-import librosa
 import numpy as np
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,50 +13,60 @@ warnings.filterwarnings("ignore")
 
 
 sr = 16000  # sampling rate
-vad = malaya_speech.vad.webrtc()
 train_audio_path = 'data/train/audio'
-labels = ["bed", "bird", "cat", "dog", "down", "go", "happy", "house",
-          "left", "marvin", "no", "off", "on", "right", "sheila", "stop", "tree",
-          "up", "wow", "yes", "zero", "one", "two", "three", "four",
-          "five", "six", "seven", "eight", "nine", "other"]
-labels_other = ["bed", "bird", "cat", "dog", "happy", "house", "marvin", "sheila", "tree", "wow"]
+targets = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go", "unknown", "silence"]
+#targets = ["yes", "no", "up"]
+
+def create_spectogram(filepath):
+    if not os.path.isfile(filepath):
+        return
+    audio = tf.io.read_file(filepath)
+    audio, _ = tf.audio.decode_wav(audio)
+
+    audio = tf.squeeze(audio, axis=-1)
+    stfts = tf.signal.stft(audio, frame_length=257,
+                           frame_step=100)
+    x = tf.math.pow(tf.abs(stfts), 0.5)
+    # normalisation
+    means = tf.math.reduce_mean(x, 1, keepdims=True)
+    stddevs = tf.math.reduce_std(x, 1, keepdims=True)
+    x = (x - means) / (stddevs + 1e-6)
+    audio_len = tf.shape(x)[0]
+    # padding to 1 second
+    pad_len = 160
+    paddings = tf.constant([[0, pad_len], [0, 0]])
+    x = tf.pad(x, paddings, "CONSTANT")[:pad_len, :]
+    return x
 
 def load_from_file(filename):
     all_wave = []
     all_label = []
+    tf_waves = []
     with open(filename, 'r+') as f:
         for wav in f:
             label = get_label(wav)
             wav = wav.replace('\n', '')
-            if label in labels_other:
-                label = "other"
-            input_length = 16000
-            data = librosa.core.load(
-                train_audio_path + '/' + wav)[0]  # , sr = 16000
+            if label=='_backfround_noise_':
+                label = 'silience'
+            elif label not in targets:
+                label = "unknown"
+            path = train_audio_path + '/' + wav
+            all_wave.append(path)
+            all_label.append(targets.index(label))
+    for wav in all_wave:
 
-            if len(data) > input_length:
-                data = data[: input_length]
-            else:
-                data = np.pad(data, (0, max(0, input_length - len(data))), "constant")
+        if not os.path.isfile(wav):
+            continue
+        wav = create_spectogram(wav)
 
-            ## data cleaning by https://www.kaggle.com/code/mayarmohsen/numbers
-            # samples, sample_rate = librosa.load(train_audio_path + '/' + wav, sr=16000)
-            # samples = nr.reduce_noise(y=samples, sr=sr, stationary=True)
-            # y_ = malaya_speech.resample(samples, sr, 16000)
-            # y_ = malaya_speech.astype.float_to_int(y_)
-            # frames = malaya_speech.generator.frames(samples, 30, sr)
-            # frames_ = list(malaya_speech.generator.frames(
-            #     y_, 30, 16000, append_ending_trail=False))
-            # frames_webrtc = [(frames[no], vad(frame))
-            #                  for no, frame in enumerate(frames_)]
-            # y_ = malaya_speech.combine.without_silent(frames_webrtc)
-            # zero = np.zeros(((1*sr+4000)-y_.shape[0]))
-            # signal = np.concatenate((y_, zero))
-            #all_wave.append(signal)
-            all_wave.append(data)
-            all_label.append(label)
-        print("Loaded " + str(np.array(all_wave).shape[0]) + " files!")
-        return np.array(all_wave), np.array(all_label)
+        if(len(tf_waves)):
+            tf_waves = tf.concat([tf_waves, tf.expand_dims(wav, 0)], 0)
+        else:
+            tf_waves = tf.stack([wav], 0)
+    tf_waves = tf.data.Dataset.from_tensor_slices(tf_waves)
+    print("Loaded " + str(np.array(all_label).shape[0]) + " files!")
+    all_label = tf.data.Dataset.from_tensor_slices(tf.one_hot(all_label, len(targets)).numpy())
+    return tf_waves, all_label
 
 
 def get_label(filename):
@@ -70,8 +75,12 @@ def get_label(filename):
 
 def get_train_filenames():
     '''Gets filenames that are not in testing_list and validation_list'''
+    labels = ["bed", "bird", "cat", "dog", "down", "go", "happy", "house",
+              "left", "marvin", "no", "off", "on", "right", "sheila", "stop", "tree",
+              "up", "wow", "yes", "zero", "one", "two", "three", "four",
+              "five", "six", "seven", "eight", "nine", "_background_noise_"]
     for label in labels:
-        print(label)
+        print("Reading files for: " + label)
         for root, dirs, files in os.walk(train_audio_path + '/' + label):
             for file in files:
                 if file.endswith(".wav"):
@@ -88,12 +97,20 @@ def get_train_filenames():
                                     with open('training_list.txt', 'a') as f3:
                                         f3.write(label + '/' + file + '\n')
 
+def create_tf_dataset(data, targets, bs=16):
+    ds = tf.data.Dataset.zip((data, targets))
+    ds = ds.batch(bs)
+    ds = ds.prefetch(tf.data.AUTOTUNE)
+    return ds
+
 def load_all_data():
     test_wav, test_label = load_from_file('data/train/testing_list.txt')
+    test_ds = create_tf_dataset(test_wav, test_label)
     val_wav, val_label = load_from_file('data/train/validation_list.txt')
+    val_ds = create_tf_dataset(val_wav, val_label)
     train_wav, train_label = load_from_file(
         'data/train/training_list.txt')
-    return test_wav, test_label, val_wav, val_label, train_wav, train_label
+    
+    train_ds = create_tf_dataset(train_wav, train_label)
+    return test_ds, val_ds, train_ds
 
-
-load_all_data()
