@@ -38,8 +38,8 @@ class TransformerEncoder(layers.Layer):
                 layers.Dense(embed_dim, kernel_initializer=initializer),
             ]
         )
-        self.layernorm1 = layers.LayerNormalization(epsilon=1e-6)
-        self.layernorm2 = layers.LayerNormalization(epsilon=1e-6)
+        self.layernorm1 = layers.BatchNormalization()
+        self.layernorm2 = layers.BatchNormalization(epsilon=1e-6)
         self.dropout1 = layers.Dropout(rate)
         self.dropout2 = layers.Dropout(rate)
 

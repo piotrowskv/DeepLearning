@@ -1,14 +1,16 @@
 import keras
 import numpy as np
-from keras.layers import Dense, Reshape, Flatten, LayerNormalization, LSTM
+from keras.layers import Dense, Reshape, Flatten, LayerNormalization, BatchNormalization, LSTM
 from tensorflow.keras.callbacks import Callback
 import tensorflow as tf
 from transformer import TransformerEncoder, SpeechFeatureEmbedding
 from load_data import load_all_data
 from results_utils import *
 
-labels = ["yes", "no", "up"]
-NUM_CLASSES=3
+# labels = ["yes", "no", "up"]
+labels = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go", "unknown", "silence"]
+
+NUM_CLASSES=12
 def train_transformer(test_ds, val_ds, train_ds, embed_dim, num_heads, ff_dim, path, seed):
     model = keras.Sequential()
     model.add(LayerNormalization())
@@ -46,17 +48,19 @@ def train_transformer(test_ds, val_ds, train_ds, embed_dim, num_heads, ff_dim, p
 
 def train_lstm(test_ds, val_ds, train_ds, n_lstm, embed_dim, recurrent_dropout, path, seed):
     model = keras.Sequential()
-    model.add(LayerNormalization())
+    model.add(BatchNormalization())
+
+    #model.add(LayerNormalization())
     model.add(SpeechFeatureEmbedding(num_hid=embed_dim))
-    model.add(LayerNormalization())
+    model.add(BatchNormalization())
     model.add(LSTM(n_lstm, recurrent_dropout=recurrent_dropout))
 
     model.add(Flatten())
     model.add(Dense(NUM_CLASSES, activation='softmax'))
     loss_fn = keras.losses.CategoricalCrossentropy(
     )
-    learning_rate = 0.2
-    model.build(input_shape=((None, 160, 257)))
+    learning_rate = 0.5
+    model.build(input_shape=((None, 98, 257)))
 
     optimizer = keras.optimizers.Adam(learning_rate)
     model.compile(optimizer=optimizer, loss=loss_fn,  metrics=['accuracy'])
