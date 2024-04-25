@@ -1,6 +1,7 @@
 import tensorflow as tf
 import seaborn as sn
 from sklearn.preprocessing import LabelEncoder
+import time
 import os
 from scipy.io import wavfile
 import numpy as np
@@ -15,8 +16,8 @@ warnings.filterwarnings("ignore")
 
 sr = 16000  # sampling rate
 train_audio_path = 'data/train/audio'
-targets = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go", "unknown", "silence"]
-# targets = ["yes", "no", "up"]
+targets = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go"]
+#targets = ["yes", "no", "up"]
 
 def create_spectogram(filepath):
     if not os.path.isfile(filepath):
@@ -26,12 +27,14 @@ def create_spectogram(filepath):
 
     audio = tf.squeeze(audio, axis=-1)
     stfts = tf.signal.stft(audio, 400, 160)
+
     x = tf.math.pow(tf.abs(stfts), 0.5)
     # normalisation
     means = tf.math.reduce_mean(x, 1, keepdims=True)
     stddevs = tf.math.reduce_std(x, 1, keepdims=True)
     x = (x - means) / (stddevs + 1e-6)
     audio_len = tf.shape(x).numpy()[0]
+
     file_length = 98
     if(audio_len < file_length):
         padding_size = file_length - audio_len
@@ -39,20 +42,25 @@ def create_spectogram(filepath):
         x = tf.pad(x, paddings, "CONSTANT")
     if(audio_len > file_length):
         x = x[:file_length, :]
+
+
     return x
 
 def load_from_file(filename):
     all_wave = []
     all_label = []
     tf_waves = []
+    
     with open(filename, 'r+') as f:
         for wav in f:
             label = get_label(wav)
             wav = wav.replace('\n', '')
-            if label=='_backfround_noise_':
-                label = 'silience'
+            if label=='_background_noise_':
+                continue
+                #label = 'silence'
             elif label not in targets:
-                label = "unknown"
+                continue
+                #label = "unknown"
             path = train_audio_path + '/' + wav
             all_wave.append(path)
             all_label.append(targets.index(label))
@@ -60,16 +68,9 @@ def load_from_file(filename):
     shuffled = list(zip(all_wave, all_label))
     random.shuffle(shuffled)
     all_wave, all_label = zip(*shuffled)
-    for wav in all_wave:
 
-        if not os.path.isfile(wav):
-            continue
-        wav = create_spectogram(wav)
+    tf_waves = list(map(create_spectogram, all_wave))
 
-        if(len(tf_waves)):
-            tf_waves = tf.concat([tf_waves, tf.expand_dims(wav, 0)], 0)
-        else:
-            tf_waves = tf.stack([wav], 0)
     tf_waves = tf.data.Dataset.from_tensor_slices(tf_waves)
     print("Loaded " + str(np.array(all_label).shape[0]) + " files!")
     all_label = tf.data.Dataset.from_tensor_slices(tf.one_hot(all_label, len(targets)).numpy())
@@ -85,7 +86,7 @@ def get_train_filenames():
     labels = ["bed", "bird", "cat", "dog", "down", "go", "happy", "house",
               "left", "marvin", "no", "off", "on", "right", "sheila", "stop", "tree",
               "up", "wow", "yes", "zero", "one", "two", "three", "four",
-              "five", "six", "seven", "eight", "nine", "_background_noise_"]
+              "five", "six", "seven", "eight", "nine"]
     for label in labels:
         print("Reading files for: " + label)
         for root, dirs, files in os.walk(train_audio_path + '/' + label):
@@ -104,20 +105,23 @@ def get_train_filenames():
                                     with open('training_list.txt', 'a') as f3:
                                         f3.write(label + '/' + file + '\n')
 
-def create_tf_dataset(data, targets, bs=16):
+def create_tf_dataset(data, targets, bs=5000):
     ds = tf.data.Dataset.zip((data, targets))
     ds = ds.batch(bs)
     ds = ds.prefetch(tf.data.AUTOTUNE)
     return ds
 
 def load_all_data():
-    test_wav, test_label = load_from_file('data/train/mock/testing_list.txt')
+
+    test_wav, test_label = load_from_file('data/train/testing_list.txt')
     test_ds = create_tf_dataset(test_wav, test_label)
-    val_wav, val_label = load_from_file('data/train/mock/validation_list.txt')
+
+
+    val_wav, val_label = load_from_file('data/train/validation_list.txt')
     val_ds = create_tf_dataset(val_wav, val_label)
     train_wav, train_label = load_from_file(
-        'data/train/mock/training_list.txt')
-    
+        'data/train/training_list.txt')
     train_ds = create_tf_dataset(train_wav, train_label)
     return test_ds, val_ds, train_ds
+
 
