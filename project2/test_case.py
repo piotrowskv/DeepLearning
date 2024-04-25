@@ -12,6 +12,8 @@ labels = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go"]
 
 NUM_CLASSES=10
 def train_transformer(test_ds, val_ds, train_ds, embedding=True, embed_dim=8, num_heads=2, ff_dim=32, path='result-sample', seed=3):
+    tf.random.set_seed(seed)
+
     model = keras.Sequential()
     model.add(BatchNormalization())
     if embedding:
@@ -32,8 +34,8 @@ def train_transformer(test_ds, val_ds, train_ds, embedding=True, embed_dim=8, nu
 
     optimizer = keras.optimizers.Adam(learning_rate)
     model.compile(optimizer=optimizer, loss=loss_fn,  metrics=['accuracy'])
-    callback = callbacks.EarlyStopping(monitor='val_accuracy', patience=3)
-    history = model.fit(train_ds, validation_data=val_ds, epochs=20, callbacks=[callback])
+    callback = callbacks.EarlyStopping(monitor='accuracy', patience=3)
+    history = model.fit(train_ds, validation_data=val_ds, epochs=100, callbacks=[callback])
 
     predictions = model.predict(test_ds)
     predictions = np.argmax(predictions, axis=1)
@@ -49,6 +51,7 @@ def train_transformer(test_ds, val_ds, train_ds, embedding=True, embed_dim=8, nu
     append_accuracy_score(result_dict['accuracy'], path)
 
 def train_lstm(test_ds, val_ds, train_ds, n_lstm=2, embedding=True, embed_dim=8, recurrent_dropout=0, path='result-sample', seed=3):
+    tf.random.set_seed(seed)
     model = keras.Sequential()
     model.add(BatchNormalization())
     if embedding:
