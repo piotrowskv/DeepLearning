@@ -29,13 +29,13 @@ def train_transformer(test_ds, val_ds, train_ds, embedding=True, embed_dim=8, nu
     model.add(Dense(NUM_CLASSES, activation='softmax'))
     loss_fn = keras.losses.CategoricalCrossentropy(
     )
-    learning_rate = 0.2
-    model.build(input_shape=((None, 98, 257)))
+    learning_rate = 1e-4
+    model.build(input_shape=((None, 99, 161)))
 
     optimizer = keras.optimizers.Adam(learning_rate)
     model.compile(optimizer=optimizer, loss=loss_fn,  metrics=['accuracy'])
     callback = callbacks.EarlyStopping(monitor='accuracy', patience=3)
-    history = model.fit(train_ds, validation_data=val_ds, epochs=100, callbacks=[callback])
+    history = model.fit(train_ds, validation_data=val_ds, epochs=10, callbacks=[callback])
 
     predictions = model.predict(test_ds)
     predictions = np.argmax(predictions, axis=1)
