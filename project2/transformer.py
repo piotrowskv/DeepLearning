@@ -12,17 +12,17 @@ class SpeechFeatureEmbedding(layers.Layer):
         self.conv1 = keras.layers.Conv1D(
             num_hid, 11, strides=2, padding="same", activation="leaky_relu", kernel_initializer=initializer
         )
-        self.conv2 = keras.layers.Conv1D(
-            num_hid, 11, strides=2, padding="same", activation="leaky_relu"
-        )
-        self.conv3 = keras.layers.Conv1D(
-            num_hid, 11, strides=2, padding="same", activation="leaky_relu", kernel_initializer=initializer
-        )
+        # self.conv2 = keras.layers.Conv1D(
+        #     num_hid, 11, strides=2, padding="same", activation="leaky_relu"
+        # )
+        # self.conv3 = keras.layers.Conv1D(
+        #     num_hid, 11, strides=2, padding="same", activation="leaky_relu", kernel_initializer=initializer
+        # )
 
     def call(self, x):
         x = self.conv1(x)
-        x = self.conv2(x)
-        x = self.conv3(x)
+        # x = self.conv2(x)
+        # x = self.conv3(x)
         return x
 
 class TransformerEncoder(layers.Layer):

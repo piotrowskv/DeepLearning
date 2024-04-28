@@ -11,6 +11,8 @@ import pandas as pd
 import shutil
 import warnings
 import random
+from scipy import signal
+from scipy.io import wavfile
 warnings.filterwarnings("ignore")
 
 
@@ -26,16 +28,27 @@ def create_spectogram(filepath):
     audio, _ = tf.audio.decode_wav(audio)
 
     audio = tf.squeeze(audio, axis=-1)
-    stfts = tf.signal.stft(audio, 400, 160)
+    sample_rate = 16000
 
-    x = tf.math.pow(tf.abs(stfts), 0.5)
+
+    nperseg = int(round(20 * sample_rate / 1e3))
+    noverlap = int(round(10 * sample_rate / 1e3))
+    # stfts = tf.signal.stft(audio, 400, 160)
+    freqs, times, x = signal.spectrogram(audio,
+                   fs=sample_rate,
+                   window='hann',
+                   nperseg=nperseg,
+                   noverlap=noverlap,
+                   detrend=False)
+    #x = tf.math.pow(tf.abs(x), 0.5)
+    x = tf.math.log(x.T.astype(np.float32) + 1e-3)
     # normalisation
     means = tf.math.reduce_mean(x, 1, keepdims=True)
     stddevs = tf.math.reduce_std(x, 1, keepdims=True)
     x = (x - means) / (stddevs + 1e-6)
     audio_len = tf.shape(x).numpy()[0]
 
-    file_length = 98
+    file_length = 99
     if(audio_len < file_length):
         padding_size = file_length - audio_len
         paddings = tf.constant([[0, padding_size], [0, 0]])
@@ -45,6 +58,28 @@ def create_spectogram(filepath):
 
 
     return x
+
+def log_specgram(audio, sample_rate=16000, window_size=20,
+                 step_size=10, eps=1e-10):
+    sample_rate, samples = wavfile.read(audio)
+    audio_len = tf.shape(samples).numpy()[0]
+
+    file_length = 16000
+    if(audio_len < file_length):
+        padding_size = file_length - audio_len
+        paddings = tf.constant([[0, padding_size], [0, 0]])
+        samples = tf.pad(samples, paddings, "CONSTANT")
+    if(audio_len > file_length):
+        samples = samples[:file_length, :]
+    nperseg = int(round(window_size * sample_rate / 1e3))
+    noverlap = int(round(step_size * sample_rate / 1e3))
+    freqs, times, spec = signal.spectrogram(samples,
+                                            fs=sample_rate,
+                                            window='hann',
+                                            nperseg=nperseg,
+                                            noverlap=noverlap,
+                                            detrend=False)
+    return np.log(spec.T.astype(np.float32) + 1e-3)
 
 def load_from_file(filename):
     all_wave = []
@@ -105,7 +140,7 @@ def get_train_filenames():
                                     with open('training_list.txt', 'a') as f3:
                                         f3.write(label + '/' + file + '\n')
 
-def create_tf_dataset(data, targets, bs=5000):
+def create_tf_dataset(data, targets, bs=32):
     ds = tf.data.Dataset.zip((data, targets))
     ds = ds.batch(bs)
     ds = ds.prefetch(tf.data.AUTOTUNE)

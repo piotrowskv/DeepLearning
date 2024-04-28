@@ -58,21 +58,22 @@ def train_lstm(test_ds, val_ds, train_ds, n_lstm=2, embedding=True, embed_dim=8,
         model.add(SpeechFeatureEmbedding(num_hid=embed_dim))
         model.add(BatchNormalization())
 
+    model.add(LSTM(n_lstm, recurrent_dropout=recurrent_dropout, return_sequences=True))
+
     model.add(LSTM(n_lstm, recurrent_dropout=recurrent_dropout))
 
     model.add(Flatten())
     model.add(Dense(NUM_CLASSES, activation='softmax'))
     loss_fn = keras.losses.CategoricalCrossentropy(
     )
-    learning_rate = 0.2
-    model.build(input_shape=((None, 98, 257)))
+    model.build(input_shape=((None, 99, 161)))
 
-    optimizer = keras.optimizers.Adam(learning_rate)
+    optimizer = keras.optimizers.Adam(1e-4)
     model.compile(optimizer=optimizer, loss=loss_fn,  metrics=['accuracy'])
     callback = callbacks.EarlyStopping(monitor='accuracy', patience=3)
 
     history = model.fit(train_ds, validation_data=val_ds,
-                        epochs=100, callbacks=[callback])
+                        epochs=10, callbacks=[callback])
 
     predictions = model.predict(test_ds)
     predictions = np.argmax(predictions, axis=1)
