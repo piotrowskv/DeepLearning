@@ -11,7 +11,9 @@ from results_utils import *
 labels = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go"]
 
 NUM_CLASSES=10
-def train_transformer(test_ds, val_ds, train_ds, embedding=True, embed_dim=8, num_heads=2, ff_dim=32, path='result-sample', seed=3):
+def train_transformer(test_ds, val_ds, train_ds, embedding=True, embed_dim=8, num_heads=2, ff_dim=32, path='result-sample', seed=3, binary=False):
+    if binary:
+        labels = ["known", "unknown"]
     tf.random.set_seed(seed)
 
     model = keras.Sequential()
@@ -26,9 +28,14 @@ def train_transformer(test_ds, val_ds, train_ds, embedding=True, embed_dim=8, nu
         rate=0.1
     ))
     model.add(Flatten())
-    model.add(Dense(NUM_CLASSES, activation='softmax'))
-    loss_fn = keras.losses.CategoricalCrossentropy(
-    )
+    if not binary:
+        model.add(Dense(NUM_CLASSES, activation='softmax'))
+        loss_fn = keras.losses.CategoricalCrossentropy(
+        )
+    else:
+        model.add(Dense(2, activation='softmax'))
+        loss_fn = keras.losses.CategoricalCrossentropy(
+        )
     learning_rate = 1e-4
     model.build(input_shape=((None, 99, 161)))
 
@@ -50,8 +57,10 @@ def train_transformer(test_ds, val_ds, train_ds, embedding=True, embed_dim=8, nu
     plot_loss(history, path + '/seed-' + str(seed))
     append_accuracy_score(result_dict['accuracy'], path)
 
-def train_lstm(test_ds, val_ds, train_ds, n_lstm=2, embedding=True, embed_dim=8, recurrent_dropout=0, path='result-sample', seed=3):
+def train_lstm(test_ds, val_ds, train_ds, n_lstm=2, embedding=True, embed_dim=8, recurrent_dropout=0, path='result-sample', seed=3, binary=False):
     tf.random.set_seed(seed)
+    if binary:
+        labels = ["known", "unknown"]
     model = keras.Sequential()
     model.add(BatchNormalization())
     if embedding:
@@ -63,9 +72,14 @@ def train_lstm(test_ds, val_ds, train_ds, n_lstm=2, embedding=True, embed_dim=8,
     model.add(LSTM(n_lstm, recurrent_dropout=recurrent_dropout))
 
     model.add(Flatten())
-    model.add(Dense(NUM_CLASSES, activation='softmax'))
-    loss_fn = keras.losses.CategoricalCrossentropy(
-    )
+    if not binary:
+        model.add(Dense(NUM_CLASSES, activation='softmax'))
+        loss_fn = keras.losses.CategoricalCrossentropy(
+        )
+    else:
+        model.add(Dense(2, activation='softmax'))
+        loss_fn = keras.losses.CategoricalCrossentropy(
+        )
     model.build(input_shape=((None, 99, 161)))
 
     optimizer = keras.optimizers.Adam(1e-4)
@@ -73,12 +87,14 @@ def train_lstm(test_ds, val_ds, train_ds, n_lstm=2, embedding=True, embed_dim=8,
     callback = callbacks.EarlyStopping(monitor='accuracy', patience=3)
 
     history = model.fit(train_ds, validation_data=val_ds,
-                        epochs=10, callbacks=[callback])
+                        epochs=5, callbacks=[callback])
 
     predictions = model.predict(test_ds)
     predictions = np.argmax(predictions, axis=1)
     y = np.concatenate([y for x, y in test_ds], axis=0)
     y = np.argmax(y, axis=1)
+    print(y)
+    print(predictions)
     result = model.evaluate(test_ds)
     result_dict = (dict(zip(model.metrics_names, result)))
 

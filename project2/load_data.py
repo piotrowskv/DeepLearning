@@ -19,6 +19,7 @@ warnings.filterwarnings("ignore")
 sr = 16000  # sampling rate
 train_audio_path = 'data/train/audio'
 targets = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go"]
+real_targets = targets
 #targets = ["yes", "no", "up"]
 
 def create_spectogram(filepath):
@@ -81,24 +82,30 @@ def log_specgram(audio, sample_rate=16000, window_size=20,
                                             detrend=False)
     return np.log(spec.T.astype(np.float32) + 1e-3)
 
-def load_from_file(filename):
+def load_from_file(filename, binary):
     all_wave = []
     all_label = []
     tf_waves = []
-    
+    if binary:
+        real_targets = ["known", "unknown"]
     with open(filename, 'r+') as f:
         for wav in f:
             label = get_label(wav)
-            wav = wav.replace('\n', '')
-            if label=='_background_noise_':
+
+            if label == '_background_noise_':
                 continue
                 #label = 'silence'
             elif label not in targets:
-                continue
-                #label = "unknown"
+                if binary:
+                    label = "unknown"
+                else:
+                    continue
+            elif binary:
+                label = "known"
+            wav = wav.replace('\n', '')
             path = train_audio_path + '/' + wav
             all_wave.append(path)
-            all_label.append(targets.index(label))
+            all_label.append(real_targets.index(label))
 
     shuffled = list(zip(all_wave, all_label))
     random.shuffle(shuffled)
@@ -108,7 +115,7 @@ def load_from_file(filename):
 
     tf_waves = tf.data.Dataset.from_tensor_slices(tf_waves)
     print("Loaded " + str(np.array(all_label).shape[0]) + " files!")
-    all_label = tf.data.Dataset.from_tensor_slices(tf.one_hot(all_label, len(targets)).numpy())
+    all_label = tf.data.Dataset.from_tensor_slices(tf.one_hot(all_label, len(real_targets)).numpy())
     return tf_waves, all_label
 
 
@@ -146,16 +153,16 @@ def create_tf_dataset(data, targets, bs=32):
     ds = ds.prefetch(tf.data.AUTOTUNE)
     return ds
 
-def load_all_data():
+def load_all_data(binary=False):
 
-    test_wav, test_label = load_from_file('data/train/testing_list.txt')
+    test_wav, test_label = load_from_file('data/train/testing_list.txt', binary=binary)
     test_ds = create_tf_dataset(test_wav, test_label)
 
 
-    val_wav, val_label = load_from_file('data/train/validation_list.txt')
+    val_wav, val_label = load_from_file('data/train/validation_list.txt', binary=binary)
     val_ds = create_tf_dataset(val_wav, val_label)
     train_wav, train_label = load_from_file(
-        'data/train/training_list.txt')
+        'data/train/training_list.txt',  binary=binary)
     train_ds = create_tf_dataset(train_wav, train_label)
     return test_ds, val_ds, train_ds
 
