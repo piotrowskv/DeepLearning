@@ -12,8 +12,8 @@ labels = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go"]
 
 NUM_CLASSES=10
 def train_transformer(test_ds, val_ds, train_ds, embedding=True, embed_dim=8, num_heads=2, ff_dim=32, path='result-sample', seed=3, binary=False):
-    if binary:
-        labels = ["known", "unknown"]
+    # if binary:
+    #     labels = ["known", "unknown"]
     tf.random.set_seed(seed)
 
     model = keras.Sequential()
