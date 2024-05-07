@@ -15,12 +15,12 @@ if __name__ == "__main__":
             print(path) 
             train_transformer(test_ds, val_ds, train_ds, embed_dim=dim, num_heads=128, ff_dim=128, path=path, seed=seed)
         for n_head in num_heads:
-            path = 'transformer-heads-' + str(dim)
+            path = 'transformer-heads-' + str(n_head)
             print(path)
             train_transformer(test_ds, val_ds, train_ds, embed_dim=256,
                               num_heads=n_head, ff_dim=128, path=path, seed=seed)
         for ff in ff_dims:
-            path = 'transformer-ff-' + str(dim)
+            path = 'transformer-ff-' + str(ff)
             print(path)
             train_transformer(test_ds, val_ds, train_ds, embed_dim=256,
                               num_heads=128, ff_dim=ff, path=path, seed=seed)
