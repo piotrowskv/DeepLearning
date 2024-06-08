@@ -1,69 +1,81 @@
 import tensorflow as tf
-from tensorflow.keras import layers
+from tensorflow.keras import layers, models
+from tensorflow.keras.preprocessing import image_dataset_from_directory
 import numpy as np
+import keras
 import matplotlib.pyplot as plt
 
-def down_block(x, filters, kernel_size=(3, 3), padding='same', strides=1):
-    c = layers.Conv2D(filters, kernel_size,
-                      padding=padding, strides=strides)(x)
-    c = layers.BatchNormalization()(c)
-    c = layers.LeakyReLU()(c)
-    c = layers.Conv2D(filters, kernel_size,
-                      padding=padding, strides=strides)(c)
-    c = layers.BatchNormalization()(c)
-    c = layers.LeakyReLU()(c)
-    p = layers.MaxPooling2D((2, 2))(c)
-    return c, p
+def build_unet(input_shape, model_number):
 
+    match model_number:
+        case 1:
+            inputs = layers.Input(shape=input_shape)
 
-def up_block(x, skip, filters, kernel_size=(3, 3), padding='same', strides=1):
-    us = layers.UpSampling2D((2, 2))(x)
-    concat = layers.Concatenate()([us, skip])
-    c = layers.Conv2D(filters, kernel_size, padding=padding,
-                      strides=strides)(concat)
-    c = layers.BatchNormalization()(c)
-    c = layers.LeakyReLU()(c)
-    c = layers.Conv2D(filters, kernel_size,
-                      padding=padding, strides=strides)(c)
-    c = layers.BatchNormalization()(c)
-    c = layers.LeakyReLU()(c)
-    return c
+            # Downsampling
+            conv1 = layers.Conv2D(32, (3, 3), activation='relu',
+                                padding='same')(inputs)
+            conv1 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(conv1)
+            pool1 = layers.MaxPooling2D(pool_size=(2, 2))(conv1)
 
+            conv2 = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(pool1)
+            conv2 = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(conv2)
+            pool2 = layers.MaxPooling2D(pool_size=(2, 2))(conv2)
 
-def UNet(input_shape):
-    f = [32, 64, 128, 256]
+            conv3 = layers.Conv2D(128, (3, 3), activation='relu',
+                                padding='same')(pool2)
+            conv3 = layers.Conv2D(128, (3, 3), activation='relu',
+                                padding='same')(conv3)
+            pool3 = layers.MaxPooling2D(pool_size=(2, 2))(conv3)
 
-    inputs = layers.Input(input_shape)
+            # Bottleneck
+            conv4 = layers.Conv2D(256, (3, 3), activation='relu',
+                                padding='same')(pool3)
+            conv4 = layers.Conv2D(256, (3, 3), activation='relu',
+                                padding='same')(conv4)
 
-    p0 = inputs
-    c1, p1 = down_block(p0, f[0])
-    c2, p2 = down_block(p1, f[1])
-    c3, p3 = down_block(p2, f[2])
-    # c4, p4 = down_block(p3, f[3])
+            # Upsampling
+            up5 = layers.Conv2D(128, (2, 2), activation='relu', padding='same')(
+                layers.UpSampling2D(size=(2, 2))(conv4))
+            merge5 = layers.concatenate([conv3, up5], axis=3)
+            conv5 = layers.Conv2D(128, (3, 3), activation='relu',
+                                padding='same')(merge5)
+            conv5 = layers.Conv2D(128, (3, 3), activation='relu',
+                                padding='same')(conv5)
 
-    bn = layers.Conv2D(f[3], (3, 3), padding='same', strides=1)(p3)
-    bn = layers.BatchNormalization()(bn)
-    bn = layers.LeakyReLU()(bn)
+            up6 = layers.Conv2D(64, (2, 2), activation='relu', padding='same')(
+                layers.UpSampling2D(size=(2, 2))(conv5))
+            merge6 = layers.concatenate([conv2, up6], axis=3)
+            conv6 = layers.Conv2D(64, (3, 3), activation='relu',
+                                padding='same')(merge6)
+            conv6 = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(conv6)
 
-    u1 = up_block(bn, c3, f[2])
-    u2 = up_block(u1, c2, f[1])
-    u3 = up_block(u2, c1, f[0])
+            up7 = layers.Conv2D(32, (2, 2), activation='relu', padding='same')(
+                layers.UpSampling2D(size=(2, 2))(conv6))
+            merge7 = layers.concatenate([conv1, up7], axis=3)
+            conv7 = layers.Conv2D(32, (3, 3), activation='relu',
+                                padding='same')(merge7)
+            conv7 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(conv7)
+            conv7 = layers.Conv2D(3, (3, 3), activation='sigmoid',
+                                padding='same')(conv7)
 
-    outputs = layers.Conv2D(3, (1, 1), padding='same', activation='tanh')(u3)
-
-    model = tf.keras.models.Model(inputs, outputs)
+            model = models.Model(inputs=inputs, outputs=conv7)
+        case 2:
+            pass
+        case 3:
+            pass
     return model
 
 
 class DiffusionModel(tf.keras.Model):
-    def __init__(self, unet, timesteps=1000):
+    def __init__(self, unet, timesteps=100, diffusion_coefficient=0.1):
         super(DiffusionModel, self).__init__()
         self.unet = unet
         self.timesteps = timesteps
+        self.diffusion_coeff = diffusion_coefficient
 
     def call(self, x, t):
         noise = tf.random.normal(shape=tf.shape(x))
-        return self.unet(x * (1 - t) + noise * t)
+        return self.unet(x * (1 - t) +  self.diffusion_coeff * noise * t)
 
     def train_step(self, data):
         images = data
@@ -78,3 +90,12 @@ class DiffusionModel(tf.keras.Model):
         self.optimizer.apply_gradients(zip(grads, self.trainable_variables))
 
         return {"loss": loss}
+
+def q_sample(x_start, t, noise, diffusion_coefficient=0.5):
+    return (1 - t) * x_start + t * diffusion_coefficient * noise
+
+
+def p_losses(model, x_start, t, noise, diffusion_coefficient=0.5):
+    x_noisy = q_sample(x_start, t, noise, diffusion_coefficient)
+    x_recon = model(x_noisy)
+    return tf.reduce_mean((x_recon - x_start) ** 2)

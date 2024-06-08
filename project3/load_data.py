@@ -1,5 +1,11 @@
 import os
 import shutil
+import tensorflow as tf
+from tensorflow.keras import layers, models
+from tensorflow.keras.preprocessing import image_dataset_from_directory
+import numpy as np
+import keras
+import matplotlib.pyplot as plt
 
 
 def move_images_to_one_folder(source_dir, target_dir):
@@ -24,8 +30,24 @@ def move_images_to_one_folder(source_dir, target_dir):
                 shutil.move(source_path, target_path)
                 print(f"Moved {source_path} to {target_path}")
 
+def load_data(directory, image_size=(64, 64), batch_size=32):
+    dataset = image_dataset_from_directory(
+        directory,
+        shuffle=True,
+        image_size=image_size,
+        batch_size=batch_size
+    )
+    return dataset
 
-source_directory = 'all_images\\train'  # Your source directory containing subdirectories
-target_directory = 'all_images\\train\\bed'  # Target directory where all images will be moved
 
-move_images_to_one_folder(source_directory, target_directory)
+def preprocess_data(dataset):
+    dataset = dataset.map(lambda x, y: (x - 127.5) / 127.5,
+                          num_parallel_calls=tf.data.AUTOTUNE)
+    return dataset
+
+
+# MOVE IMAGES DRIVER CODE
+# source_directory = 'all_images\\train'
+# target_directory = 'all_images\\train\\bed'
+
+# move_images_to_one_folder(source_directory, target_directory)
