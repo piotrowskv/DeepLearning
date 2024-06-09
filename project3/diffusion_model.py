@@ -12,49 +12,49 @@ def build_unet(input_shape, model_number):
             inputs = layers.Input(shape=input_shape)
 
             # Downsampling
-            conv1 = layers.Conv2D(32, (3, 3), activation='relu',
+            conv1 = layers.Conv2D(32, (3, 3), activation='tanh',
                                 padding='same')(inputs)
-            conv1 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(conv1)
+            conv1 = layers.Conv2D(32, (3, 3), activation='tanh', padding='same')(conv1)
             pool1 = layers.MaxPooling2D(pool_size=(2, 2))(conv1)
 
-            conv2 = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(pool1)
-            conv2 = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(conv2)
+            conv2 = layers.Conv2D(64, (3, 3), activation='tanh', padding='same')(pool1)
+            conv2 = layers.Conv2D(64, (3, 3), activation='tanh', padding='same')(conv2)
             pool2 = layers.MaxPooling2D(pool_size=(2, 2))(conv2)
 
-            conv3 = layers.Conv2D(128, (3, 3), activation='relu',
+            conv3 = layers.Conv2D(128, (3, 3), activation='tanh',
                                 padding='same')(pool2)
-            conv3 = layers.Conv2D(128, (3, 3), activation='relu',
+            conv3 = layers.Conv2D(128, (3, 3), activation='tanh',
                                 padding='same')(conv3)
             pool3 = layers.MaxPooling2D(pool_size=(2, 2))(conv3)
 
             # Bottleneck
-            conv4 = layers.Conv2D(256, (3, 3), activation='relu',
+            conv4 = layers.Conv2D(256, (3, 3), activation='tanh',
                                 padding='same')(pool3)
-            conv4 = layers.Conv2D(256, (3, 3), activation='relu',
+            conv4 = layers.Conv2D(256, (3, 3), activation='tanh',
                                 padding='same')(conv4)
 
             # Upsampling
-            up5 = layers.Conv2D(128, (2, 2), activation='relu', padding='same')(
+            up5 = layers.Conv2D(128, (2, 2), activation='tanh', padding='same')(
                 layers.UpSampling2D(size=(2, 2))(conv4))
             merge5 = layers.concatenate([conv3, up5], axis=3)
-            conv5 = layers.Conv2D(128, (3, 3), activation='relu',
+            conv5 = layers.Conv2D(128, (3, 3), activation='tanh',
                                 padding='same')(merge5)
-            conv5 = layers.Conv2D(128, (3, 3), activation='relu',
+            conv5 = layers.Conv2D(128, (3, 3), activation='tanh',
                                 padding='same')(conv5)
 
-            up6 = layers.Conv2D(64, (2, 2), activation='relu', padding='same')(
+            up6 = layers.Conv2D(64, (2, 2), activation='tanh', padding='same')(
                 layers.UpSampling2D(size=(2, 2))(conv5))
             merge6 = layers.concatenate([conv2, up6], axis=3)
-            conv6 = layers.Conv2D(64, (3, 3), activation='relu',
+            conv6 = layers.Conv2D(64, (3, 3), activation='tanh',
                                 padding='same')(merge6)
-            conv6 = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(conv6)
+            conv6 = layers.Conv2D(64, (3, 3), activation='tanh', padding='same')(conv6)
 
-            up7 = layers.Conv2D(32, (2, 2), activation='relu', padding='same')(
+            up7 = layers.Conv2D(32, (2, 2), activation='tanh', padding='same')(
                 layers.UpSampling2D(size=(2, 2))(conv6))
             merge7 = layers.concatenate([conv1, up7], axis=3)
-            conv7 = layers.Conv2D(32, (3, 3), activation='relu',
+            conv7 = layers.Conv2D(32, (3, 3), activation='tanh',
                                 padding='same')(merge7)
-            conv7 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(conv7)
+            conv7 = layers.Conv2D(32, (3, 3), activation='tanh', padding='same')(conv7)
             conv7 = layers.Conv2D(3, (3, 3), activation='tanh',
                                 padding='same')(conv7)
 
@@ -64,37 +64,37 @@ def build_unet(input_shape, model_number):
 
             # Downsampling
 
-            conv2 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(inputs)
-            conv2 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(conv2)
+            conv2 = layers.Conv2D(32, (3, 3), activation='linear', padding='same')(inputs)
+            conv2 = layers.Conv2D(32, (3, 3), activation='linear', padding='same')(conv2)
             pool2 = layers.MaxPooling2D(pool_size=(2, 2))(conv2)
 
-            conv3 = layers.Conv2D(64, (3, 3), activation='relu',
+            conv3 = layers.Conv2D(64, (3, 3), activation='tanh',
                                 padding='same')(pool2)
-            conv3 = layers.Conv2D(64, (3, 3), activation='relu',
+            conv3 = layers.Conv2D(64, (3, 3), activation='tanh',
                                 padding='same')(conv3)
             pool3 = layers.MaxPooling2D(pool_size=(2, 2))(conv3)
 
             # Bottleneck
-            conv4 = layers.Conv2D(128, (3, 3), activation='relu',
+            conv4 = layers.Conv2D(128, (3, 3), activation='linear',
                                 padding='same')(pool3)
-            conv4 = layers.Conv2D(128, (3, 3), activation='relu',
+            conv4 = layers.Conv2D(128, (3, 3), activation='linear',
                                 padding='same')(conv4)
 
             # Upsampling
-            up5 = layers.Conv2D(64, (2, 2), activation='relu', padding='same')(
+            up5 = layers.Conv2D(64, (2, 2), activation='tanh', padding='same')(
                 layers.UpSampling2D(size=(2, 2))(conv4))
             merge5 = layers.concatenate([conv3, up5], axis=3)
-            conv5 = layers.Conv2D(64, (3, 3), activation='relu',
+            conv5 = layers.Conv2D(64, (3, 3), activation='tanh',
                                 padding='same')(merge5)
-            conv5 = layers.Conv2D(64, (3, 3), activation='relu',
+            conv5 = layers.Conv2D(64, (3, 3), activation='tanh',
                                 padding='same')(conv5)
 
-            up6 = layers.Conv2D(32, (2, 2), activation='relu', padding='same')(
+            up6 = layers.Conv2D(32, (2, 2), activation='linear', padding='same')(
                 layers.UpSampling2D(size=(2, 2))(conv5))
             merge6 = layers.concatenate([conv2, up6], axis=3)
-            conv6 = layers.Conv2D(32, (3, 3), activation='relu',
+            conv6 = layers.Conv2D(32, (3, 3), activation='linear',
                                 padding='same')(merge6)
-            conv6 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(conv6)
+            conv6 = layers.Conv2D(32, (3, 3), activation='linear', padding='same')(conv6)
 
             conv7 = layers.Conv2D(3, (3, 3), activation='tanh',
                                 padding='same')(conv6)
@@ -104,49 +104,49 @@ def build_unet(input_shape, model_number):
             inputs = layers.Input(shape=input_shape)
 
             # Downsampling
-            conv1 = layers.Conv2D(32, (3, 3), activation='relu',
+            conv1 = layers.Conv2D(32, (3, 3), activation='tanh',
                                 padding='same')(inputs)
-            conv1 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(conv1)
+            conv1 = layers.Conv2D(32, (3, 3), activation='tanh', padding='same')(conv1)
             pool1 = layers.MaxPooling2D(pool_size=(2, 2))(conv1)
 
-            conv2 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(pool1)
-            conv2 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(conv2)
+            conv2 = layers.Conv2D(32, (3, 3), activation='tanh', padding='same')(pool1)
+            conv2 = layers.Conv2D(32, (3, 3), activation='tanh', padding='same')(conv2)
             pool2 = layers.MaxPooling2D(pool_size=(2, 2))(conv2)
 
-            conv3 = layers.Conv2D(64, (3, 3), activation='relu',
+            conv3 = layers.Conv2D(64, (3, 3), activation='tanh',
                                 padding='same')(pool2)
-            conv3 = layers.Conv2D(64, (3, 3), activation='relu',
+            conv3 = layers.Conv2D(64, (3, 3), activation='tanh',
                                 padding='same')(conv3)
             pool3 = layers.MaxPooling2D(pool_size=(2, 2))(conv3)
 
             # Bottleneck
-            conv4 = layers.Conv2D(64, (3, 3), activation='relu',
+            conv4 = layers.Conv2D(64, (3, 3), activation='tanh',
                                 padding='same')(pool3)
-            conv4 = layers.Conv2D(64, (3, 3), activation='relu',
+            conv4 = layers.Conv2D(64, (3, 3), activation='tanh',
                                 padding='same')(conv4)
 
             # Upsampling
-            up5 = layers.Conv2D(64, (2, 2), activation='relu', padding='same')(
+            up5 = layers.Conv2D(64, (2, 2), activation='tanh', padding='same')(
                 layers.UpSampling2D(size=(2, 2))(conv4))
             merge5 = layers.concatenate([conv3, up5], axis=3)
-            conv5 = layers.Conv2D(64, (3, 3), activation='relu',
+            conv5 = layers.Conv2D(64, (3, 3), activation='tanh',
                                 padding='same')(merge5)
-            conv5 = layers.Conv2D(64, (3, 3), activation='relu',
+            conv5 = layers.Conv2D(64, (3, 3), activation='tanh',
                                 padding='same')(conv5)
 
-            up6 = layers.Conv2D(32, (2, 2), activation='relu', padding='same')(
+            up6 = layers.Conv2D(32, (2, 2), activation='tanh', padding='same')(
                 layers.UpSampling2D(size=(2, 2))(conv5))
             merge6 = layers.concatenate([conv2, up6], axis=3)
-            conv6 = layers.Conv2D(32, (3, 3), activation='relu',
+            conv6 = layers.Conv2D(32, (3, 3), activation='tanh',
                                 padding='same')(merge6)
-            conv6 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(conv6)
+            conv6 = layers.Conv2D(32, (3, 3), activation='tanh', padding='same')(conv6)
 
-            up7 = layers.Conv2D(32, (2, 2), activation='relu', padding='same')(
+            up7 = layers.Conv2D(32, (2, 2), activation='tanh', padding='same')(
                 layers.UpSampling2D(size=(2, 2))(conv6))
             merge7 = layers.concatenate([conv1, up7], axis=3)
-            conv7 = layers.Conv2D(32, (3, 3), activation='relu',
+            conv7 = layers.Conv2D(32, (3, 3), activation='tanh',
                                 padding='same')(merge7)
-            conv7 = layers.Conv2D(32, (3, 3), activation='relu', padding='same')(conv7)
+            conv7 = layers.Conv2D(32, (3, 3), activation='tanh', padding='same')(conv7)
             conv7 = layers.Conv2D(3, (3, 3), activation='tanh',
                                 padding='same')(conv7)
 
