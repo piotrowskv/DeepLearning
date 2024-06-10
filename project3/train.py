@@ -30,3 +30,4 @@ def train(model_number, train_dataset, epochs, diffusion_coefficient, T, model_n
     diffusion_model.compile(optimizer='adam')
     # Train the model
     diffusion_model.fit(train_dataset, epochs=epochs, callbacks=[early_stopping, save_model, generate_images_callback])
+    return diffusion_model
