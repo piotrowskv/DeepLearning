@@ -12,18 +12,18 @@ def build_unet(input_shape, model_number):
             inputs = layers.Input(shape=input_shape)
 
             # Downsampling
-            conv1 = layers.Conv2D(32, (3, 3), activation='tanh',
+            conv1 = layers.Conv2D(32, (3, 3), activation='linear',
                                 padding='same')(inputs)
-            conv1 = layers.Conv2D(32, (3, 3), activation='tanh', padding='same')(conv1)
+            conv1 = layers.Conv2D(32, (3, 3), activation='linear', padding='same')(conv1)
             pool1 = layers.MaxPooling2D(pool_size=(2, 2))(conv1)
 
             conv2 = layers.Conv2D(64, (3, 3), activation='tanh', padding='same')(pool1)
             conv2 = layers.Conv2D(64, (3, 3), activation='tanh', padding='same')(conv2)
             pool2 = layers.MaxPooling2D(pool_size=(2, 2))(conv2)
 
-            conv3 = layers.Conv2D(128, (3, 3), activation='tanh',
+            conv3 = layers.Conv2D(128, (3, 3), activation='linear',
                                 padding='same')(pool2)
-            conv3 = layers.Conv2D(128, (3, 3), activation='tanh',
+            conv3 = layers.Conv2D(128, (3, 3), activation='linear',
                                 padding='same')(conv3)
             pool3 = layers.MaxPooling2D(pool_size=(2, 2))(conv3)
 
@@ -34,12 +34,12 @@ def build_unet(input_shape, model_number):
                                 padding='same')(conv4)
 
             # Upsampling
-            up5 = layers.Conv2D(128, (2, 2), activation='tanh', padding='same')(
+            up5 = layers.Conv2D(128, (2, 2), activation='linear', padding='same')(
                 layers.UpSampling2D(size=(2, 2))(conv4))
             merge5 = layers.concatenate([conv3, up5], axis=3)
-            conv5 = layers.Conv2D(128, (3, 3), activation='tanh',
+            conv5 = layers.Conv2D(128, (3, 3), activation='linear',
                                 padding='same')(merge5)
-            conv5 = layers.Conv2D(128, (3, 3), activation='tanh',
+            conv5 = layers.Conv2D(128, (3, 3), activation='linear',
                                 padding='same')(conv5)
 
             up6 = layers.Conv2D(64, (2, 2), activation='tanh', padding='same')(
@@ -49,12 +49,12 @@ def build_unet(input_shape, model_number):
                                 padding='same')(merge6)
             conv6 = layers.Conv2D(64, (3, 3), activation='tanh', padding='same')(conv6)
 
-            up7 = layers.Conv2D(32, (2, 2), activation='tanh', padding='same')(
+            up7 = layers.Conv2D(32, (2, 2), activation='linear', padding='same')(
                 layers.UpSampling2D(size=(2, 2))(conv6))
             merge7 = layers.concatenate([conv1, up7], axis=3)
-            conv7 = layers.Conv2D(32, (3, 3), activation='tanh',
+            conv7 = layers.Conv2D(32, (3, 3), activation='linear',
                                 padding='same')(merge7)
-            conv7 = layers.Conv2D(32, (3, 3), activation='tanh', padding='same')(conv7)
+            conv7 = layers.Conv2D(32, (3, 3), activation='linear', padding='same')(conv7)
             conv7 = layers.Conv2D(3, (3, 3), activation='tanh',
                                 padding='same')(conv7)
 
@@ -104,18 +104,18 @@ def build_unet(input_shape, model_number):
             inputs = layers.Input(shape=input_shape)
 
             # Downsampling
-            conv1 = layers.Conv2D(32, (3, 3), activation='tanh',
+            conv1 = layers.Conv2D(32, (3, 3), activation='linear',
                                 padding='same')(inputs)
-            conv1 = layers.Conv2D(32, (3, 3), activation='tanh', padding='same')(conv1)
+            conv1 = layers.Conv2D(32, (3, 3), activation='linear', padding='same')(conv1)
             pool1 = layers.MaxPooling2D(pool_size=(2, 2))(conv1)
 
             conv2 = layers.Conv2D(32, (3, 3), activation='tanh', padding='same')(pool1)
             conv2 = layers.Conv2D(32, (3, 3), activation='tanh', padding='same')(conv2)
             pool2 = layers.MaxPooling2D(pool_size=(2, 2))(conv2)
 
-            conv3 = layers.Conv2D(64, (3, 3), activation='tanh',
+            conv3 = layers.Conv2D(64, (3, 3), activation='linear',
                                 padding='same')(pool2)
-            conv3 = layers.Conv2D(64, (3, 3), activation='tanh',
+            conv3 = layers.Conv2D(64, (3, 3), activation='linear',
                                 padding='same')(conv3)
             pool3 = layers.MaxPooling2D(pool_size=(2, 2))(conv3)
 
@@ -126,12 +126,12 @@ def build_unet(input_shape, model_number):
                                 padding='same')(conv4)
 
             # Upsampling
-            up5 = layers.Conv2D(64, (2, 2), activation='tanh', padding='same')(
+            up5 = layers.Conv2D(64, (2, 2), activation='linear', padding='same')(
                 layers.UpSampling2D(size=(2, 2))(conv4))
             merge5 = layers.concatenate([conv3, up5], axis=3)
-            conv5 = layers.Conv2D(64, (3, 3), activation='tanh',
+            conv5 = layers.Conv2D(64, (3, 3), activation='linear',
                                 padding='same')(merge5)
-            conv5 = layers.Conv2D(64, (3, 3), activation='tanh',
+            conv5 = layers.Conv2D(64, (3, 3), activation='linear',
                                 padding='same')(conv5)
 
             up6 = layers.Conv2D(32, (2, 2), activation='tanh', padding='same')(
@@ -141,12 +141,12 @@ def build_unet(input_shape, model_number):
                                 padding='same')(merge6)
             conv6 = layers.Conv2D(32, (3, 3), activation='tanh', padding='same')(conv6)
 
-            up7 = layers.Conv2D(32, (2, 2), activation='tanh', padding='same')(
+            up7 = layers.Conv2D(32, (2, 2), activation='linear', padding='same')(
                 layers.UpSampling2D(size=(2, 2))(conv6))
             merge7 = layers.concatenate([conv1, up7], axis=3)
-            conv7 = layers.Conv2D(32, (3, 3), activation='tanh',
+            conv7 = layers.Conv2D(32, (3, 3), activation='linear',
                                 padding='same')(merge7)
-            conv7 = layers.Conv2D(32, (3, 3), activation='tanh', padding='same')(conv7)
+            conv7 = layers.Conv2D(32, (3, 3), activation='linear', padding='same')(conv7)
             conv7 = layers.Conv2D(3, (3, 3), activation='tanh',
                                 padding='same')(conv7)
 
@@ -155,12 +155,19 @@ def build_unet(input_shape, model_number):
 
 
 class DiffusionModel(tf.keras.Model):
-    def __init__(self, unet, timesteps=100, diffusion_coefficient=0.1):
+    def __init__(self, unet=None, timesteps=100, diffusion_coefficient=0.1, **kwargs):
         super(DiffusionModel, self).__init__()
         self.unet = unet
         self.timesteps = timesteps
         self.diffusion_coeff = diffusion_coefficient
 
+
+    def get_config(self):
+        config = super().get_config().copy()
+        config.update({
+            'unet': self.unet,
+        })
+        return config
     def call(self, x, t):
         noise = tf.random.normal(shape=tf.shape(x))
         return self.unet(x * (1 - t) +  self.diffusion_coeff * noise * t)
@@ -178,12 +185,3 @@ class DiffusionModel(tf.keras.Model):
         self.optimizer.apply_gradients(zip(grads, self.trainable_variables))
 
         return {"loss": loss}
-
-def q_sample(x_start, t, noise, diffusion_coefficient=0.5):
-    return (1 - t) * x_start + t * diffusion_coefficient * noise
-
-
-def p_losses(model, x_start, t, noise, diffusion_coefficient=0.5):
-    x_noisy = q_sample(x_start, t, noise, diffusion_coefficient)
-    x_recon = model(x_noisy)
-    return tf.reduce_mean((x_recon - x_start) ** 2)

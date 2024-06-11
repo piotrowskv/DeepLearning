@@ -14,10 +14,10 @@ from generate import *
 train_dir = 'all_images'
 batch_size = 64
 image_size = (64, 64)
-T = [5, 7] #[10, 2, 50]
-diffs = [0.7, 0.9] #[0.5, 0.6, 0.7]
-seeds = [42, 51, 128, 345, 11]
-model_numbers = [2] #[1, 2, 3]
+T = [2, 5, 10, 50]
+diffs = [0.5, 0.6, 0.7, 0.8]
+seeds = [42, 51, 128]
+model_numbers = [1, 2, 3]
 epochs = 2
 train_dataset = load_data(
     train_dir, image_size=image_size, batch_size=batch_size)
@@ -36,3 +36,11 @@ for seed in seeds:
                     "-timesteps" + str(t) + "diff-" + str(diff)
                 model = train(model_number=model_num, train_dataset=train_dataset, epochs=epochs,
                               diffusion_coefficient=diff, T=t, model_name=model_name)
+                generated_images = generate_images(
+                    model, 64, model_name, t)
+                real_images = train_dataset.take(64)
+
+                fid = calculate_fid(real_images, generated_images)
+                print(fid)
+                with open(model_name + ".txt", "w+") as f:
+                    f.write(fid)
